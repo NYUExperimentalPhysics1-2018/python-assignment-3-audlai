@@ -3,7 +3,9 @@
 """
 Created on Thu Oct 18 19:18:02 2018
 
-@author: gershow
+@author: Audrey Lai
+TA: Argha Mondal
+Assignment: PS3
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,7 +46,16 @@ def trajectory (x0,y0,v,theta,g = 9.8, npts = 1000):
     0.5g t^2 - vsin(theta) t - y0 = 0
     t_final = v/g sin(theta) + sqrt((v/g)^2 sin^2(theta) + 2 y0/g)
     """
-  
+    theta=np.deg2rad(theta)
+    x0=float(x0)
+    y0=float(y0)
+    vx=v*np.cos(theta)
+    vy=v*np.sin(theta)
+    tFinal=(vy/g)+np.sqrt(((vy/g)**2-2*(y0/g)))
+    t=np.linspace(0,tFinal,npts)
+    x=x0+vx*t
+    y=(y0)+(vy*t)-(0.5)*g*(t**2)
+    return (x,y)
 
 def firstInBox (x,y,box):
     """
@@ -65,6 +76,17 @@ def firstInBox (x,y,box):
         y[j] is in [bottom,top]
         -1 if the line x,y does not go through the box
     """
+    for j in range (len(x)):
+        bool=x[j]>=box[0] and x[j]<=box[1]
+        if bool:
+            if y[j]>=box[2] and y[j]<=box [3]:
+                return j
+            else:
+                return -1
+        else:
+            return -1
+ 
+        
 
 
     
@@ -96,7 +118,19 @@ def tankShot (targetBox, obstacleBox, x0, y0, v, theta, g = 9.8):
     obstacle box
     draws the truncated trajectory in current plot window
     """
-    
+    x,y=trajectory (x0,y0,v,theta,g = 9.8, npts = 1000)
+    xF,yF=endTrajectoryAtIntersection (x,y,targetBox)
+    if len(x)==len(xF):
+        plt.plot(x,y)
+        showWindow()
+        if firstInBox (x,y,targetBox)>=0:
+            return 1
+        else:
+            return 0
+    elif len(x)>len(xF):
+        plt.plot(xF,yF)
+        showWindow()
+        return 0
 
 
 def drawBoard (tank1box, tank2box, obstacleBox, playerNum):
@@ -115,6 +149,12 @@ def drawBoard (tank1box, tank2box, obstacleBox, playerNum):
  
     """    
     #your code here
+    plt.clf()
+    drawBox(tank1box, 'b')
+    drawBox(tank2box,'k')
+    drawBox(obstacleBox,'r')
+    plt.xlim(0,100)
+    plt.ylim(0,100)
     
     showWindow() #this makes the figure window show up
 
@@ -142,7 +182,22 @@ def oneTurn (tank1box, tank2box, obstacleBox, playerNum, g = 9.8):
     prompts player for velocity and angle
     displays trajectory (shot originates from center of tank)
     returns 0 for miss, 1 or 2 for victory
-    """        
+    """ 
+    plt.clf()
+    drawBoard (tank1box, tank2box, obstacleBox, playerNum)
+    v=float(input('please enter velocity: '))
+    theta=float(input('please enter an angle: '))
+    
+
+    if playerNum==1:
+        x0=(tank1box[0]+tank1box[1])/2
+        y0=(tank1box[2]+tank1box[3])/2
+        return tankShot(tank2box,obstacleBox,x0,y0,v,theta)
+    else:
+        x0=(tank2box[0]+tank2box[1])/2
+        y0=(tank2box[2]+tank2box[3])/2
+        return 2*tankShot(tank1box,obstacleBox,x0,y0,v,theta)
+
 
     
 
@@ -161,7 +216,25 @@ def playGame(tank1box, tank2box, obstacleBox, g = 9.8):
      g : float 
         accel due to gravity (default 9.8)
     """
+    playerNum=1
     
+    while True:
+        outcome=oneTurn(tank1box, tank2box, obstacleBox, playerNum, g = 9.8)
+        if outcome==1:
+            print('1 wins')
+            break
+        elif outcome==2:
+            print('2 wins')
+            break
+        else:
+            if playerNum==1:
+                playerNum=2
+            else:
+                playerNum=1
+            input("continue? hit enter.")
+        
+
+        
     
         
 ##### functions provided to you #####
